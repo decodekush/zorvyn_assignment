@@ -1,0 +1,47 @@
+// Prisma Schema — Finance Data Processing Backend
+// Database: SQLite (file-based, zero-config)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User Model ──────────────────────────────────────────────
+// Stores registered users with role-based access levels.
+// Roles: VIEWER | ANALYST | ADMIN
+// Status: ACTIVE | INACTIVE
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String?
+  password  String
+  role      String   @default("VIEWER")
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  records FinancialRecord[]
+}
+
+// ─── Financial Record Model ─────────────────────────────────
+// Stores individual financial transactions (income or expense).
+// Each record is linked to the user who created it.
+
+model FinancialRecord {
+  id        String   @id @default(uuid())
+  amount    Float
+  type      String   // INCOME | EXPENSE
+  category  String
+  date      DateTime
+  notes     String?
+  isDeleted Boolean  @default(false) // Soft delete support
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
